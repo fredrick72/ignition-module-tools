@@ -1,4 +1,4 @@
-package com.eleconsulting.performandtracker.designer;
+package com.eleconsulting.performancetracker.designer;
 
 import com.inductiveautomation.ignition.common.licensing.LicenseState;
 import com.inductiveautomation.ignition.designer.model.AbstractDesignerModuleHook;
@@ -13,7 +13,7 @@ public class PerformanceTrackerDesignerHook extends AbstractDesignerModuleHook {
     // override additonal methods as requried
 
     @Override
-    public void startup(DesignerContext context, LicenseState activationState) throws Exception {
-        // implelement functionality as required
+    public void startup(DesignerContext context, GatewayContext gatewayContext) {
+    context.getScriptManager().addScriptModule("system.monitoring", new MonitoringScripts());
     }
 }

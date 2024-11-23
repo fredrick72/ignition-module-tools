@@ -1,4 +1,4 @@
-package com.eleconsulting.performandtracker.gateway;
+package com.eleconsulting.performancetracker.gateway;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +24,42 @@ public class PerformanceTrackerGatewayHook extends AbstractGatewayModuleHook {
      * records and schemas. None of the managers will be started up at this point, but the extension point managers will
      * accept extension point types.
      */
-    @Override
-    public void setup(GatewayContext context) {
+    private GatewayContext context;
 
+    @Override
+    public void setup(GatewayContext gatewayContext) {
+        this.context = gatewayContext;
+        setupScriptExecutionTracking();
+        setupQueryTimingTracking();
+    }
+
+    private void setupScriptExecutionTracking() {
+        ScriptManager scriptManager = context.getScriptManager();
+        scriptManager.addScriptListener((scriptName, scriptCode, executionTime, exception) -> {
+            if (exception == null) {
+                context.getLogger().info("Script executed: " + scriptName + " in " + executionTime + " ms");
+            } else {
+                context.getLogger().error("Script error in: " + scriptName, exception);
+            }
+        });
+    }
+
+    private void setupQueryTimingTracking() {
+        context.getDatasourceManager().addQueryListener((datasource, sql, params, executionTime, error) -> {
+            if (error == null) {
+                context.getLogger().info("Query executed on " + datasource + ": " + sql + " in " + executionTime + " ms");
+            } else {
+                context.getLogger().error("Query error on " + datasource + ": " + sql, error);
+            }
+        });
+    }
+
+    @Override
+    public Object getRPCHandler(Class<?> api, String projectName) {
+    if (api == MonitoringRPC.class) {
+        return new MonitoringRPCImpl();
+    }
+    return null;
     }
 
     /**
